@@ -1,0 +1,227 @@
+---
+title: "Class 10: Halloween Candy"
+author: "Zavier Annis"
+format: pdf
+---
+
+```{r}
+candy_file <- "candy-data.csv"
+
+candy = read.csv(candy_file, row.names=1)
+head(candy)
+```
+
+> Q1.
+
+```{r}
+candy.data <- data.frame(candy)
+nrow(candy.data)
+```
+
+> A1. There are 85 types of candy in this dataset.
+
+> Q2.
+
+```{r}
+sum(candy.data$fruity)
+```
+
+> A2. There are 38 fruity candy types in this dataset.
+
+> Q3.
+
+```{r}
+candy.data
+candy["Snickers",]$winpercent
+```
+
+> A3. My favorite candy in the dataset is Snickers. Its 'winpercent' value is 76.67378.
+
+> Q4.
+
+```{r}
+candy["Kit Kat",]$winpercent
+```
+
+> A4. The 'winpercent' value for Kit Kat is 76.7686.
+
+> Q5.
+
+```{r}
+candy["Tootsie Roll Snack Bars",]$winpercent
+```
+
+> A5. The 'winpercent' value for Tootsie Roll Snack Bars is 49.6535.
+
+```{r}
+library("skimr")
+skim(candy)
+```
+
+> Q6. / A6. Yes, the 'winpercent' variable appears to be on a different scale (0-100) than the majority of the other variables (0-1).
+
+> Q7. / A7. For the 'candy$chocolate' column, a zero represents that the candy does not contain chocolate, while a one represents that the candy does contain chocolate.
+
+> Q8. / A8.
+
+```{r}
+hist(candy$winpercent)
+```
+
+> Q9. / A9. No, the 'winpercent' values distribution is not quite symmetrical. There is a slight tail to the right.
+
+> Q10. / A10. The center of the distribution is below 50%, with the largest bin between 40-50%.
+
+> Q11.
+
+```{r}
+mean(candy$winpercent[as.logical(candy$chocolate)])
+mean(candy$winpercent[as.logical(candy$fruity)])
+```
+
+> A11. On average, chocolate candy is higher ranked than fruit candy, with an average 'winpercent' value approximately 15 units higher than fruit candy.
+
+> Q12.
+
+```{r}
+t.test(x=candy$winpercent[as.logical(candy$chocolate)], y=candy$winpercent[as.logical(candy$fruity)])
+```
+
+> A12. Yes, the difference is statistically significant as the p-value extremely small, far below 0.05. Reject the null hypothesis.
+
+> Q13.
+
+```{r}
+head(candy[order(candy$winpercent),], n=5)
+```
+
+> A13. The five least liked candy types in the dataset are Nik L Nip, Boston Baked Beans, Chiclets, Super Bubble, and Jawbusters.
+
+> Q14.
+
+```{r}
+tail(candy[order(candy$winpercent),], n=5)
+```
+
+> A14. The top 5 all-time favorite candy types in the dataset are Reese's Peanut Butter cup, Reese's Miniatures, Twix, Kit Kat, and Snickers.
+
+> Q15. / A15.
+
+```{r}
+library(ggplot2)
+
+ggplot(candy.data) + 
+  aes(winpercent, rownames(candy)) +
+  geom_col()
+```
+
+> Q16. / A16.
+
+```{r}
+ggplot(candy.data) + 
+  aes(winpercent, reorder(rownames(candy), winpercent)) +
+  geom_col()
+```
+
+```{r}
+my_cols=rep("black", nrow(candy))
+my_cols[as.logical(candy$chocolate)] = "chocolate"
+my_cols[as.logical(candy$bar)] = "brown"
+my_cols[as.logical(candy$fruity)] = "pink"
+ggplot(candy) + 
+  aes(winpercent, reorder(rownames(candy),winpercent)) +
+  geom_col(fill=my_cols) 
+```
+
+> Q17. / A17. The lowest/worst ranked chocolate candy is Sixlets.
+
+> Q18 / A18. The highest/best ranked fruity candy is Starburst.
+
+```{r}
+library(ggrepel)
+
+# How about a plot of price vs win?
+ggplot(candy) +
+  aes(winpercent, pricepercent, label=rownames(candy)) +
+  geom_point(col=my_cols) + 
+  geom_text_repel(col=my_cols, size=3.3, max.overlaps = 5)
+```
+
+> Q19. / A19. The highest 'winpercent' ranking with the lowest 'pricepercent' ranking is likely the Reese's Miniatures, as it is over 0.80 win percentile while still being below 0.30 price percentile. However, this answer could change based on thresholds; e.g. if someone wanted to minimize spending then they might pick a slightly lower-ranked candy with a lower pricepercent.
+
+> Q20.
+
+```{r}
+ord <- order(candy$pricepercent, decreasing = TRUE)
+head( candy[ord,c(11,12)], n=5 )
+```
+
+
+> A20. The top 5 most expensive candy types in the dataset are Nik L Nip, Nestle Smarties, Ring pop, Hershey's Krackel, and Hershey's Milk Chocolate. The least popular of these five candies is Nik L Nip.
+
+> Q21. / A21.
+
+```{r}
+ggplot(candy) +
+  aes(pricepercent, reorder(rownames(candy), pricepercent)) +
+  geom_segment(aes(yend = reorder(rownames(candy), pricepercent), 
+                   xend = 0), col="gray40") +
+    geom_point()
+```
+
+```{r}
+library(corrplot)
+cij <- cor(candy)
+corrplot(cij)
+```
+
+> Q22. / A22. The two most strongly anti-correlated variables are 'chocolate' and 'fruity', which aligns with the general uncommonness of fruity chocolate candy. Other anti-correlated variables with smaller negative values include 'bar' + 'pluribus' and 'bar' + 'fruity'.
+
+> Q23. / A23. The two most strongly correlated variables appear to be 'winpercent' and 'chocolate', which aligns with our earlier analysis. Other correlated variables with smaller positive values include 'bar' + 'chocolate', as expected, and 'bar' + 'nougat'.
+
+```{r}
+pca <- prcomp(candy, scale=TRUE)
+summary(pca)
+```
+
+```{r}
+plot(pca$x[,1:2])
+```
+
+```{r}
+plot(pca$x[,1:2], col=my_cols, pch=16)
+
+```
+
+```{r}
+my_data <- cbind(candy, pca$x[,1:3])
+p <- ggplot(my_data) + 
+        aes(x=PC1, y=PC2, 
+            size=winpercent/100,  
+            text=rownames(my_data),
+            label=rownames(my_data)) +
+        geom_point(col=my_cols)
+
+p
+```
+
+```{r}
+library(ggrepel)
+
+p + geom_text_repel(size=3.3, col=my_cols, max.overlaps = 7)  + 
+  theme(legend.position = "none") +
+  labs(title="Halloween Candy PCA Space",
+       subtitle="Colored by type: chocolate bar (dark brown), chocolate other (light brown), fruity (red), other (black)",
+       caption="Data from 538")
+```
+
+```{r}
+par(mar=c(8,4,2,2))
+barplot(pca$rotation[,1], las=2, ylab="PC1 Contribution")
+```
+
+> Q24. / A24. The variables picked up strongly by PC1 in the positive direction are fruity, hard, and pluribus, with fruity being by far the strongest. This definitely makes sense because fruity candies are mostly grouped on the right side of the plot, and chocolate candies (the most strongly negative variable for PC1) are mostly grouped on the left side. Additionally, since many fruity candies are hard candies and come in a pluribus form (bag of Skittles, etc.) it also makes sense that these should be positive along with fruity.
+
+
+
+
